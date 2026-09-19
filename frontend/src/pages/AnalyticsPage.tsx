@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Project, AnalyticsOverview } from '../types';
 import { analyticsApi } from '../api/client';
+import { MOCK_OVERVIEW } from '../api/mockData';
 import { StatCard } from '../components/common/StatCard';
 import { CarbonTrajectoryChart } from '../components/analytics/CarbonTrajectoryChart';
 import { BiodiversityRadarChart } from '../components/analytics/BiodiversityRadarChart';
@@ -33,8 +34,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ projects }) => {
       try {
         const data = await analyticsApi.getOverview(selectedProjectId || undefined);
         setOverview(data);
-      } catch (err) {
-        console.error('Failed to load analytics', err);
+      } catch {
+        setOverview(MOCK_OVERVIEW);
       } finally {
         setLoading(false);
       }

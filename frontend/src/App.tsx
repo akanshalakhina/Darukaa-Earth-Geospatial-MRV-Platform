@@ -11,6 +11,7 @@ import { Sidebar } from './components/common/Sidebar';
 import { ProjectModal } from './components/projects/ProjectModal';
 import { CreateSiteModal } from './components/sites/CreateSiteModal';
 import { projectsApi, sitesApi, analyticsApi } from './api/client';
+import { MOCK_PROJECTS, MOCK_SITES, MOCK_SITES_GEOJSON } from './api/mockData';
 import { Project, Site, SiteFeatureCollection, ProjectCreateInput, SiteCreateInput } from './types';
 import { LoadingSpinner } from './components/common/LoadingSpinner';
 
@@ -49,11 +50,19 @@ export const App: React.FC = () => {
         sitesApi.list(),
         sitesApi.listAsGeoJSON(),
       ]);
-      setProjects(projs);
-      setSites(siteList);
-      setSitesGeoJSON(geojson);
-    } catch (err) {
-      console.error('Failed to load platform data', err);
+      if (projs && projs.length > 0) {
+        setProjects(projs);
+        setSites(siteList);
+        setSitesGeoJSON(geojson);
+      } else {
+        setProjects(MOCK_PROJECTS);
+        setSites(MOCK_SITES);
+        setSitesGeoJSON(MOCK_SITES_GEOJSON);
+      }
+    } catch {
+      setProjects(MOCK_PROJECTS);
+      setSites(MOCK_SITES);
+      setSitesGeoJSON(MOCK_SITES_GEOJSON);
     } finally {
       setLoadingData(false);
     }

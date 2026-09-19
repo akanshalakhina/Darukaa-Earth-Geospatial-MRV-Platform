@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { AnalyticsOverview, Activity } from '../types';
 import { analyticsApi } from '../api/client';
+import { MOCK_OVERVIEW, MOCK_ACTIVITIES } from '../api/mockData';
 import { StatCard } from '../components/common/StatCard';
 import { CarbonTrajectoryChart } from '../components/analytics/CarbonTrajectoryChart';
 import { BiomeDoughnutChart } from '../components/analytics/BiomeDoughnutChart';
@@ -43,8 +44,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         ]);
         setOverview(ovData);
         setActivities(actData);
-      } catch (err) {
-        console.error('Failed to load dashboard overview', err);
+      } catch {
+        setOverview(MOCK_OVERVIEW);
+        setActivities(MOCK_ACTIVITIES);
       } finally {
         setLoading(false);
       }

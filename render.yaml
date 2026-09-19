@@ -60,7 +60,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://darukaa-backend.onrender.com/api/v1
+        value: https://darukaa-backend-j93n.onrender.com/api/v1
       - key: VITE_MAPBOX_TOKEN
         sync: false   # Set manually in Render dashboard
 

@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+# Husky pre-commit hook for Darukaa.Earth frontend
+# Runs lint-staged: formats and lints staged TS/TSX/CSS files
+
+cd "$(git rev-parse --show-toplevel)/frontend"
+npx lint-staged

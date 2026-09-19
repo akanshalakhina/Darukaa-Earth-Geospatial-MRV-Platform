@@ -1,0 +1,107 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  backend-ci:
+    name: Backend Lint & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run Flake8 Lint
+        run: |
+          cd backend
+          flake8 app tests
+
+      - name: Run Black Formatting Check
+        run: |
+          cd backend
+          black --check app tests
+
+      - name: Run Pytest Suite
+        run: |
+          cd backend
+          pytest -v
+
+  frontend-ci:
+    name: Frontend Lint & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npm run lint
+
+      - name: Build React Application
+        run: |
+          cd frontend
+          npm run build
+
+  deploy:
+    name: Deploy to Render.com
+    runs-on: ubuntu-latest
+    # Only deploy on push to main/master — not on pull requests
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    # Gate: only deploy if both CI jobs pass
+    needs: [backend-ci, frontend-ci]
+    steps:
+      - name: Deploy Backend to Render
+        run: |
+          echo "Triggering Render backend deploy..."
+          curl -s --fail-with-body \
+            -X POST "${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}" \
+            -H "Content-Type: application/json" \
+            | jq '.id // "Deploy triggered"'
+        env:
+          # Add this secret in: GitHub repo → Settings → Secrets → RENDER_BACKEND_DEPLOY_HOOK
+          # Value: your Render backend service deploy hook URL
+          RENDER_BACKEND_DEPLOY_HOOK: ${{ secrets.RENDER_BACKEND_DEPLOY_HOOK }}
+
+      - name: Deploy Frontend to Render
+        run: |
+          echo "Triggering Render frontend deploy..."
+          curl -s --fail-with-body \
+            -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}" \
+            -H "Content-Type: application/json" \
+            | jq '.id // "Deploy triggered"'
+        env:
+          # Add this secret in: GitHub repo → Settings → Secrets → RENDER_FRONTEND_DEPLOY_HOOK
+          # Value: your Render frontend static site deploy hook URL
+          RENDER_FRONTEND_DEPLOY_HOOK: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK }}
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Darukaa.Earth deployed to Render.com"
+          echo "Backend API: https://darukaa-backend.onrender.com"
+          echo "Frontend App: https://darukaa-earth.onrender.com"
+          echo "API Docs: https://darukaa-backend.onrender.com/docs"
